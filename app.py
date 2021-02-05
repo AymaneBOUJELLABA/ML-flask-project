@@ -3,7 +3,7 @@ from db import db, user_collection, client
 from bson.objectid import ObjectId
 from bson.json_util import dumps
 import json
-from nlp import tokenize
+from nlp import tokenize, pos_tag
 
 app = Flask(__name__)
 
@@ -18,6 +18,8 @@ def process_text():
     result = None
     if method == "tokenization":
         result = tokenize(text)
+    elif method == "pos_tag":
+        result = pos_tag(tokenize(text))
     return jsonify({"success": True, "data": result})
 
 

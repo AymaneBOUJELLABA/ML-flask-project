@@ -3,8 +3,22 @@ from db import db, user_collection, client
 from bson.objectid import ObjectId
 from bson.json_util import dumps
 import json
+from nlp import tokenize
 
 app = Flask(__name__)
+
+
+@app.route('/process_text', methods=['POST'])
+def process_text():
+    _json = request.get_json(force=True)
+    if not "method" in _json or not "text" in _json:
+        return not_found()
+    text = _json['text']
+    method = _json['method']
+    result = None
+    if method == "tokenization":
+        result = tokenize(text)
+    return jsonify({"success": True, "data": result})
 
 
 @app.route('/data', methods=['GET'])
@@ -12,6 +26,7 @@ def get_all_data():
     data = user_collection.find()
     resp = dumps(data)
     return resp
+
 
 @app.route('/data/<id>', methods=['GET'])
 def get_data(id):

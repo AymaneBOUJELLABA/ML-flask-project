@@ -1,8 +1,8 @@
-from flask import Flask, jsonify, request
-from db import db, user_collection, client
-from bson.objectid import ObjectId
 from bson.json_util import dumps
-import json
+from bson.objectid import ObjectId
+from flask import Flask, jsonify, request
+
+from db import user_collection
 from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words
 
 app = Flask(__name__)

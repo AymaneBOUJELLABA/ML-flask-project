@@ -3,7 +3,7 @@ from db import db, user_collection, client
 from bson.objectid import ObjectId
 from bson.json_util import dumps
 import json
-from nlp import tokenize, pos_tag
+from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words
 
 app = Flask(__name__)
 
@@ -16,10 +16,15 @@ def process_text():
     text = _json['text']
     method = _json['method']
     result = None
+
     if method == "tokenization":
         result = tokenize(text)
     elif method == "pos_tag":
         result = pos_tag(tokenize(text))
+    elif method == "rm_stop_words":
+        result = rm_stop_words(text)
+    elif method == "bag_of_words":  # expecting an array of texts
+        result = bag_of_words(text)
     return jsonify({"success": True, "data": result})
 
 
@@ -44,7 +49,7 @@ def save_new_data():
     _name = _json['name']
     if _name and request.method == 'POST':
         user_collection.insert_one({"name": _name})
-        resp = jsonify('User added successfully!')
+        resp = jsonify('Data added successfully!')
         resp.status_code = 200
         return resp
     else:
@@ -53,8 +58,8 @@ def save_new_data():
 
 @app.route('/data/<id>', methods=['DELETE'])
 def delete_user(id):
-    mongo.db.user.delete_one({'_id': ObjectId(id)})
-    resp = jsonify('User deleted successfully!')
+    user_collection.delete_one({'_id': ObjectId(id)})
+    resp = jsonify('Data deleted successfully!')
     resp.status_code = 200
     return resp
 

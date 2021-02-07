@@ -3,7 +3,7 @@ from bson.objectid import ObjectId
 from flask import Flask, jsonify, request
 
 from db import user_collection
-from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words
+from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words, lemmatization, stemming
 
 app = Flask(__name__)
 
@@ -23,6 +23,10 @@ def process_text():
         result = pos_tag(tokenize(text))
     elif method == "rm_stop_words":
         result = rm_stop_words(text)
+    elif method == "lemmatization":
+        result = lemmatization(text)
+    elif method == "stemming":     
+        result = stemming(text)   
     elif method == "bag_of_words":  # expecting an array of texts
         result = bag_of_words(text)
     return jsonify({"success": True, "data": result})

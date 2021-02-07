@@ -1,11 +1,15 @@
 import nltk
 from nltk import pos_tag as pos_tag_
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, sent_tokenize, word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.stem import PorterStemmer
+
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('stopwords')
+nltk.download('wordnet')
 
 
 def tokenize(text):
@@ -42,3 +46,22 @@ def bag_of_words(texts):
                 if word == sw:
                     bag[word] += 1
     return bow
+
+def lemmatization(texts):
+    word_list = nltk.word_tokenize(texts)
+    lemmatizer = WordNetLemmatizer()
+    lemmatized_output = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
+    
+    return lemmatized_output
+
+def stemming(sentence):
+    ps = PorterStemmer()
+    words = word_tokenize(sentence)
+    stem_sentence =[]
+    for word in words:
+        stem_sentence.append(ps.stem(word))
+        stem_sentence.append(" ")
+        
+    return "".join(stem_sentence)
+       
+

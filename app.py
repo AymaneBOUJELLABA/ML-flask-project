@@ -5,7 +5,7 @@ from flask_cors import CORS
 
 from db import user_collection
 from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words, lemmatization, stemming
-
+from scraping import Scraping
 app = Flask(__name__)
 CORS(app)
 
@@ -31,6 +31,20 @@ def process_text():
     elif method == "bag_of_words":  # expecting an array of texts
         result = bag_of_words(text)
     response =  jsonify({"success": True, "data": result})
+    return response
+
+@app.route('/scrap', methods=['POST'])
+def add():
+    _json = request.get_json(force=True)
+    if not "de" in _json or not "a" in _json:
+        return not_found()
+    de = _json['de']
+    a = _json['a']
+    rows = Scraping(de,a)
+    for row in rows:
+        scrapping_collection = mongo.db.scrapingText
+        scrapping_collection.insert({'link': row['link'], 'title': row['title'], 'text': row['text']})
+    response =  jsonify({"success": True, "data": "scrapted"})
     return response
 
 @app.route('/data', methods=['GET'])

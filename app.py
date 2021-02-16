@@ -1,12 +1,13 @@
 from bson.json_util import dumps
 from bson.objectid import ObjectId
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 from db import user_collection
 from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words, lemmatization, stemming
 
 app = Flask(__name__)
-
+CORS(app)
 
 @app.route('/process_text', methods=['POST'])
 def process_text():
@@ -29,8 +30,8 @@ def process_text():
         result = stemming(text)   
     elif method == "bag_of_words":  # expecting an array of texts
         result = bag_of_words(text)
-    return jsonify({"success": True, "data": result})
-
+    response =  jsonify({"success": True, "data": result})
+    return response
 
 @app.route('/data', methods=['GET'])
 def get_all_data():

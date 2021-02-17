@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json, codecs
 from json import JSONEncoder
+import re
 
 from textblob import TextBlob
 from db import user_collection, scraping_collection
@@ -64,6 +65,9 @@ def add():
     a = _json['a']
     rows = Scraping(de,a)
     for row in rows:
+        regex = re.compile('[^a-z A-Z,?/!\ ]')
+        row['title'] = regex.sub('',row['title'])
+        row['text'] = regex.sub('',row['text'])
         scraping_collection.insert({'link': row['link'], 'title': row['title'], 'text': row['text']})
     response =  jsonify({"success": True, "data": "scrapted"})
     return response

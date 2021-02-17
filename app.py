@@ -31,11 +31,11 @@ def process_text():
         result = lemmatization(text)
     elif method == "tfidf":
         result = tfidf(text)    
-    elif method == "stemming":     
-        result = stemming(text)   
-    elif method == "bag_of_words":  # expecting an array of texts
+    elif method == "stemming":
+        result = stemming(text)
+    elif method == "bag_of_words":# expecting an array of texts
         result = bag_of_words(text)
-    response =  jsonify({"success": True, "data": result})
+    response =  jsonify({"data": result})
     return response
 
 @app.route('/emotion', methods=['POST'])

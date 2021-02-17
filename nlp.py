@@ -30,7 +30,8 @@ def rm_stop_words(text):
     return tokens_without_sw
 
 
-def bag_of_words(texts):
+def bag_of_words(texts_arr):
+    texts = texts_arr.split(';')
     words = []
     for i in range(len(texts)):
         for word in texts[i].split():

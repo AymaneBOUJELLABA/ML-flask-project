@@ -5,7 +5,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize, word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+import pandas as pd
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -113,16 +113,16 @@ def tfidf(documents):
         numOfWords[word] += 1
     stopwords.words('english')
     tf = computeTF(numOfWords, bagOfWords)
-    idfs = computeIDF(numOfWords)
+    idfs = computeIDF([numOfWords])
     tfidf = computeTFIDF(tf, idfs)
     vectorizer = TfidfVectorizer()
-    vectors = vectorizer.fit_transform(documents)
+    vectors = vectorizer.fit_transform([documents])
     feature_names = vectorizer.get_feature_names()
     dense = vectors.todense()
     denselist = dense.tolist()
     df = pd.DataFrame(denselist, columns=feature_names)
 
-    return df
+    return df.to_dict(orient='records')[0]
 
 
     

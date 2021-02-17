@@ -2,7 +2,10 @@ from bson.json_util import dumps
 from bson.objectid import ObjectId
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import json, codecs
+from json import JSONEncoder
 
+from textblob import TextBlob
 from db import user_collection, scraping_collection
 from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words, lemmatization, stemming, tfidf
 from scraping import Scraping
@@ -33,6 +36,23 @@ def process_text():
     elif method == "bag_of_words":  # expecting an array of texts
         result = bag_of_words(text)
     response =  jsonify({"success": True, "data": result})
+    return response
+
+@app.route('/emotion', methods=['POST'])
+def emotion():
+    _json = request.get_json(force=True)
+    if not "text" in _json:
+        return not_found()
+    text = _json['text']
+    s = TextBlob(text)
+    emotion = s.sentiment.polarity
+    if emotion == 0:
+        res = "neutral"
+    elif emotion>0:
+        res = "positive"
+    else:
+        res = "negative"
+    response =  jsonify({"success": True, "data": res})
     return response
 
 @app.route('/scrap', methods=['POST'])

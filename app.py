@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from db import user_collection, scraping_collection
-from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words, lemmatization, stemming
+from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words, lemmatization, stemming, tfidf
 from scraping import Scraping
 app = Flask(__name__)
 CORS(app)
@@ -26,6 +26,8 @@ def process_text():
         result = rm_stop_words(text)
     elif method == "lemmatization":
         result = lemmatization(text)
+    elif method == "tfidf":
+        result = tfidf(text)    
     elif method == "stemming":     
         result = stemming(text)   
     elif method == "bag_of_words":  # expecting an array of texts

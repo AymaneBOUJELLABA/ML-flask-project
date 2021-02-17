@@ -4,6 +4,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize, word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.stem import PorterStemmer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 nltk.download('punkt')
@@ -63,5 +64,66 @@ def stemming(sentence):
         stem_sentence.append(" ")
         
     return "".join(stem_sentence)
-       
+
+def TfId(document):
+    vectorizer = TfidfVectorizer()
+    analyze = vectorizer.build_analyzer()
+    analyze(document)
+    res = vectorizer.get_feature_names()
+
+    return res
+
+# Term Frequency (TF) The number of times a word appears 
+#in a document divded by the total number of words in the document.
+def computeTF(wordDict, bagOfWords):
+    tfDict = {}
+    bagOfWordsCount = len(bagOfWords)
+    for word, count in wordDict.items():
+        tfDict[word] = count / float(bagOfWordsCount)
+    return tfDict
+
+#Inverse Data Frequency (IDF)
+#The log of the number of documents divided 
+#by the number of documents that contain the word w.
+def computeIDF(documents):
+    import math
+    N = len(documents)
+    
+    idfDict = dict.fromkeys(documents[0].keys(), 0)
+    for document in documents:
+        for word, val in document.items():
+            if val > 0:
+                idfDict[word] += 1
+    
+    for word, val in idfDict.items():
+        idfDict[word] = math.log(N / float(val))
+    return idfDict
+
+def computeTFIDF(tfBagOfWords, idfs):
+    tfidf = {}
+    for word, val in tfBagOfWords.items():
+        tfidf[word] = val * idfs[word]
+    return tfidf
+
+def tfidf(documents):
+    bagOfWords = documents.split(' ')
+    uniqueWords = set(bagOfWords)
+    numOfWords = dict.fromkeys(uniqueWords, 0)
+    for word in bagOfWords:
+        numOfWords[word] += 1
+    stopwords.words('english')
+    tf = computeTF(numOfWords, bagOfWords)
+    idfs = computeIDF(numOfWords)
+    tfidf = computeTFIDF(tf, idfs)
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform(documents)
+    feature_names = vectorizer.get_feature_names()
+    dense = vectors.todense()
+    denselist = dense.tolist()
+    df = pd.DataFrame(denselist, columns=feature_names)
+
+    return df
+
+
+    
 

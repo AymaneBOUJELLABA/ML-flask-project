@@ -1,13 +1,23 @@
+import codecs
+import json
+from fakenews_model import predict_article
+from fakenews_model import train_model
+from scraping import Scraping
+from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words, lemmatization, stemming, tfidf
+from db import user_collection, scraping_collection
+from textblob import TextBlob
+import re
+from json import JSONEncoder
+import threading
 from bson.json_util import dumps
 from bson.objectid import ObjectId
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from db import user_collection, scraping_collection
-from nlp import tokenize, pos_tag, rm_stop_words, bag_of_words, lemmatization, stemming, tfidf
-from scraping import Scraping
 app = Flask(__name__)
+
 CORS(app)
+
 
 @app.route('/process_text', methods=['POST'])
 def process_text():
@@ -27,13 +37,39 @@ def process_text():
     elif method == "lemmatization":
         result = lemmatization(text)
     elif method == "tfidf":
-        result = tfidf(text)    
-    elif method == "stemming":     
-        result = stemming(text)   
+        result = tfidf(text)
+    elif method == "stemming":
+        result = stemming(text)
     elif method == "bag_of_words":  # expecting an array of texts
         result = bag_of_words(text)
-    response =  jsonify({"success": True, "data": result})
+        result = tfidf(text)
+    elif method == "stemming":
+        result = stemming(text)
+    elif method == "bag_of_words":  # expecting an array of texts
+        result = bag_of_words(text)
+
+    response = jsonify({"data": result})
+
     return response
+
+
+@app.route('/emotion', methods=['POST'])
+def emotion():
+    _json = request.get_json(force=True)
+    if not "text" in _json:
+        return not_found()
+    text = _json['text']
+    s = TextBlob(text)
+    emotion = s.sentiment.polarity
+    if emotion == 0:
+        res = "neutral"
+    elif emotion > 0:
+        res = "positive"
+    else:
+        res = "negative"
+    response = jsonify({"success": True, "data": res})
+    return response
+
 
 @app.route('/scrap', methods=['POST'])
 def add():
@@ -42,11 +78,16 @@ def add():
         return not_found()
     de = _json['de']
     a = _json['a']
-    rows = Scraping(de,a)
+    rows = Scraping(de, a)
     for row in rows:
-        scraping_collection.insert({'link': row['link'], 'title': row['title'], 'text': row['text']})
-    response =  jsonify({"success": True, "data": "scrapted"})
+        regex = re.compile('[^a-z A-Z,?/!\ ]')
+        row['title'] = regex.sub('', row['title'])
+        row['text'] = regex.sub('', row['text'])
+        scraping_collection.insert(
+            {'link': row['link'], 'title': row['title'], 'text': row['text']})
+    response = jsonify({"success": True, "data": "scrapted"})
     return response
+
 
 @app.route('/data', methods=['GET'])
 def get_all_data():
@@ -84,6 +125,16 @@ def delete_user(id):
     return resp
 
 
+@app.route('/predict/fakenews', methods=['POST'])
+def predict():
+    _json = request.get_json(force=True)
+    if not "article" in _json:
+        return not_found()
+    article = _json['article']
+
+    return jsonify({"isFake":  predict_article(article)})
+
+
 @app.errorhandler(404)
 def not_found(error=None):
     message = {
@@ -97,4 +148,4 @@ def not_found(error=None):
 
 
 if __name__ == '__main__':
-    app.run(port=8000)
+    app.run(port=8000, debug=True)

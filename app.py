@@ -13,7 +13,6 @@ from bson.json_util import dumps
 from bson.objectid import ObjectId
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-
 app = Flask(__name__)
 
 CORS(app)
@@ -47,9 +46,11 @@ def process_text():
         result = stemming(text)
     elif method == "bag_of_words":  # expecting an array of texts
         result = bag_of_words(text)
-
+    elif method == "stemming":
+        result = stemming(text)
+    elif method == "bag_of_words":  # expecting an array of texts
+        result = bag_of_words(text)
     response = jsonify({"data": result})
-
     return response
 
 
@@ -68,6 +69,7 @@ def emotion():
     else:
         res = "negative"
     response = jsonify({"success": True, "data": res})
+
     return response
 
 
@@ -85,6 +87,11 @@ def add():
         row['text'] = regex.sub('', row['text'])
         scraping_collection.insert(
             {'link': row['link'], 'title': row['title'], 'text': row['text']})
+        row['title'] = regex.sub('', row['title'])
+        row['text'] = regex.sub('', row['text'])
+        scraping_collection.insert(
+            {'link': row['link'], 'title': row['title'], 'text': row['text']})
+
     response = jsonify({"success": True, "data": "scrapted"})
     return response
 

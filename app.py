@@ -13,6 +13,10 @@ from bson.json_util import dumps
 from bson.objectid import ObjectId
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from schema import schema
+from datetime import datetime
+from flask_graphql import GraphQLView
+
 app = Flask(__name__)
 
 CORS(app)
@@ -85,12 +89,13 @@ def add():
         regex = re.compile('[^a-z A-Z,?/!\ ]')
         row['title'] = regex.sub('', row['title'])
         row['text'] = regex.sub('', row['text'])
-        scraping_collection.insert(
-            {'link': row['link'], 'title': row['title'], 'text': row['text']})
-        row['title'] = regex.sub('', row['title'])
-        row['text'] = regex.sub('', row['text'])
-        scraping_collection.insert(
-            {'link': row['link'], 'title': row['title'], 'text': row['text']})
+        scraping_collection.insert({
+            'link': row['link'],
+            'title': row['title'],
+            'text': row['text'],
+            'date': datetime.now(),
+            'prediction': predict_article(row['text'])
+        })
 
     response = jsonify({"success": True, "data": "scrapted"})
     return response
@@ -98,7 +103,7 @@ def add():
 
 @app.route('/data', methods=['GET'])
 def get_all_data():
-    data = user_collection.find()
+    data = scraping_collection.find()
     resp = dumps(data)
     return resp
 
@@ -152,6 +157,10 @@ def not_found(error=None):
     resp.status_code = 404
 
     return resp
+
+
+app.add_url_rule(
+    '/graphql', view_func=GraphQLView.as_view('graphql', schema=schema, graphiql=True))
 
 
 if __name__ == '__main__':
